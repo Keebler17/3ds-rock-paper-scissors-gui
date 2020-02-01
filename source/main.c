@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 		
 		//clearBuffer(GFX_BOTTOM, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, 0, 0));
 		
-		drawImage(GFX_BOTTOM, 0, 0, 50, 50, menu, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, 0, 0));
+		drawImage(GFX_BOTTOM, 0, 0, 51, 51, menu, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, 0, 0));
 		
 		// fillBuffer(GFX_BOTTOM, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, 0, 0), 0xFF, 0xFF, 0xFF);
 		//fillBuffer(GFX_BOTTOM, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, 0, 0), 0x8A, 0xDA, 0xDA);
@@ -128,6 +128,10 @@ void drawImage(gfxScreen_t screen, int _x, int _y, int height, int width, int im
 			buffer[++imageCounter] = image[imageCounter];
 			buffer[++imageCounter] = image[imageCounter];
 			imageCounter++;
+			
+			if(height < yHeight) {
+				
+			}
 		}
 	}
 }
