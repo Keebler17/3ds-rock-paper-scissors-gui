@@ -17,18 +17,53 @@ int getXYPos(int x, int y, gfxScreen_t screen);
 
 int main(int argc, char* argv[])
 {
+	
+	int choice;
+	
 	gfxInit(GSP_BGR8_OES, GSP_BGR8_OES, false);
+	
+	PrintConsole console;
+	
+	consoleInit(GFX_TOP, &console);
+	consoleSelect(&console);
 	
 	while (aptMainLoop())
 	{
+		touchPosition touch;
+		
 		hidScanInput();
 		
-		u32 kDown = hidKeysDown();
-		if (kDown & KEY_START) 
-			break;
+		hidTouchRead(&touch);
 		
-		drawImage(GFX_BOTTOM, 50, 50, 50, 50, menu, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, 0, 0));
-		drawImage(GFX_TOP, 50, 50, 50, 50, menu, gfxGetFramebuffer(GFX_TOP, GFX_LEFT, 0, 0));
+		u32 kDown = hidKeysDown();
+		
+		drawImage(GFX_BOTTOM, 0, 0, BOTTOM_HEIGHT, BOTTOM_WIDTH, menu, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, 0, 0));
+		
+		
+		consoleClear();
+		printf("\x1b[1;0HTouch X: %d", touch.px);
+		printf("\x1b[2;1HTouch Pad Y: %d", touch.py);
+		
+		choice = -1;
+		
+		while(!chose) {
+			if (kDown & KEY_START) 
+					break;
+				
+			if(touch.px >= 35 && touch.px <= 284) {
+				if(touch.py >= 50 && touch.py < 100) { // rock
+					choice = 0
+				}
+				
+				if(touch.py >= 100 && touch.py < 149) { // paper 
+					choice = 1
+				}
+				
+				if(touch.py >= 150 && touch.py <= 200) { // scissors
+					choice = 2
+				}
+			}
+		}
 		
 		gfxFlushBuffers();
 		gfxSwapBuffers();
