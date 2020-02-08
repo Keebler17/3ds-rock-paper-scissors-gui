@@ -13,6 +13,7 @@ void drawPixel(gfxScreen_t screen, int x, int y, u8* buffer, u8 red, u8 green, u
 void fillBuffer(gfxScreen_t screen, u8* buffer, u8 red, u8 green, u8 blue);
 void clearBuffer(gfxScreen_t screen, u8* buffer);
 void drawImage(gfxScreen_t screen, int _x, int _y, int height, int width, int image[], u8* buffer);
+int getXYPos(int x, int y, gfxScreen_t screen);
 
 int main(int argc, char* argv[])
 {
@@ -22,8 +23,6 @@ int main(int argc, char* argv[])
 	consoleInit(GFX_TOP, &console);
 	consoleSelect(&console);
 	
-	bool drawn = false;
-	
 	while (aptMainLoop())
 	{
 		hidScanInput();
@@ -32,24 +31,7 @@ int main(int argc, char* argv[])
 		if (kDown & KEY_START) 
 			break;
 		
-		/*for(int i = 0; i < 400; i++) {
-			for(int j = TOP_HEIGHT/2-5; j < TOP_HEIGHT/2+5; j++) {
-				drawPixel(GFX_TOP, i, j, gfxGetFramebuffer(GFX_TOP, GFX_LEFT, 0, 0), 0xFF, 0xFF, 0xFF);
-			}
-		}*/
-		
-		//clearBuffer(GFX_BOTTOM, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, 0, 0));
-		
-		drawImage(GFX_BOTTOM, 0, 0, 51, 51, menu, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, 0, 0));
-		
-		// fillBuffer(GFX_BOTTOM, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, 0, 0), 0xFF, 0xFF, 0xFF);
-		//fillBuffer(GFX_BOTTOM, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, 0, 0), 0x8A, 0xDA, 0xDA);
-		
-		
-		//drawPixel(GFX_TOP, 100, TOP_HEIGHT/2, gfxGetFramebuffer(GFX_TOP, GFX_LEFT, 0, 0), 0xFF, 0xFF, 0xFF);
-		
-		// printf("\x1b[0;17Hbuflen=%d   ", buflen);
-		// printf("\x1b[2;0HCircle pad up/down = vel up/down\nDpad up/down = minimum X up/down\n X/B = maximum X up/down\nVelocity: %d\n Min X: %d\n Max X: %d", vel, minX, maxX);
+		drawImage(GFX_BOTTOM, 50, 50, 50, 50, menu, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, 0, 0));
 		
 		gfxFlushBuffers();
 		gfxSwapBuffers();
@@ -121,17 +103,20 @@ void drawImage(gfxScreen_t screen, int _x, int _y, int height, int width, int im
 		yHeight = BOTTOM_HEIGHT;
 	}
 	
+	int loc = getXYPos(_x, _y, screen);
 	int imageCounter = 0;
-	for(int x = _x; x < width; x++) {
-		for(int y = _y; y < height; y++) {
-			buffer[imageCounter] = image[imageCounter];
-			buffer[++imageCounter] = image[imageCounter];
-			buffer[++imageCounter] = image[imageCounter];
-			imageCounter++;
-			
-			if(height < yHeight) {
-				
-			}
+	for(int x = 0; x < width; x++) {
+		for(int y = 0; y < height; y++) {
+			buffer[loc++] = image[imageCounter++];
+			buffer[loc++] = image[imageCounter++];
+			buffer[loc++] = image[imageCounter++];
 		}
+		loc -= height * 3;
+		loc += yHeight * 3;
 	}
+}
+
+int getXYPos(int x, int y, gfxScreen_t screen) {
+	int height = screen == GFX_TOP ? TOP_HEIGHT : BOTTOM_HEIGHT;
+	return (x * 3 * height) + (y * 3);
 }
