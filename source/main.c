@@ -19,10 +19,6 @@ int main(int argc, char* argv[])
 {
 	gfxInit(GSP_BGR8_OES, GSP_BGR8_OES, false);
 	
-	PrintConsole console;
-	consoleInit(GFX_TOP, &console);
-	consoleSelect(&console);
-	
 	while (aptMainLoop())
 	{
 		hidScanInput();
@@ -32,6 +28,7 @@ int main(int argc, char* argv[])
 			break;
 		
 		drawImage(GFX_BOTTOM, 50, 50, 50, 50, menu, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, 0, 0));
+		drawImage(GFX_TOP, 50, 50, 50, 50, menu, gfxGetFramebuffer(GFX_TOP, GFX_LEFT, 0, 0));
 		
 		gfxFlushBuffers();
 		gfxSwapBuffers();
