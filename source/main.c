@@ -15,6 +15,11 @@ void clearBuffer(gfxScreen_t screen, u8* buffer);
 void drawImage(gfxScreen_t screen, int _x, int _y, int height, int width, int image[], u8* buffer);
 int getXYPos(int x, int y, gfxScreen_t screen);
 int getWinner(int p1, int p2);
+void displayTurn(int turn);
+void displayScore(int p1_score, int p2_Score);
+void displayWinner(bool p1_win, bool p2_win);
+int invert(int turn);
+int handleInput(u32 kDown, touchPosition touch);
 
 int main(int argc, char* argv[])
 {
@@ -40,92 +45,63 @@ int main(int argc, char* argv[])
 	bool tie = false;
 	bool p1_win = false;
 	bool p2_win = false;
+
+	bool _displayWinner = false;
 	
 	while (aptMainLoop())
 	{
-		// fillBuffer(GFX_BOTTOM, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, 0, 0), 0x00, 0x00, 0x00);
 		drawImage(GFX_BOTTOM, 0, 0, BOTTOM_HEIGHT, BOTTOM_WIDTH, menu, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, 0, 0));
-		consoleClear();
-		
-		if(tie) {
-			printf("\x1b[0;0Htie");
-		} else if(p1_win) {
-			printf("\x1b[0;0Hp1");
-		} else if(p2_win) {
-			printf("\x1b[0;0Hp2");
-		}
-		
-		printf("\x1b[2;0H%d - %d", p1_score, p2_score);
-		
+		consoleClear();	
+		choice = -1;
+
+		displayTurn(turn);
+		displayScore(p1_score, p2_score);
+		if(_displayWinner) displayWinner(p1_win, p2_win);
+
 		touchPosition touch;
 		hidScanInput();
 		hidTouchRead(&touch);
 		u32 kDown = hidKeysDown();
 		
-		if (kDown & KEY_START) { 
-			break;
-		}
+		if (kDown & KEY_START) { break; }
 		
-		
-		if(turn == 0) {
-			p1 = choice;
-		} else {
-			p2 = choice;
-			
-			int result = getWinner(p1, p2);
-			
-			tie = false;
-			p1_win = false;
-			p2_win = false;
-			
-			if(result == -1) {
-				tie = true;
-			} else if(result == 0) {
-				p1_win = true;
-			} else {
-				p2_win = true;
-			}
-			
-		}
-		
-		if(chose && !tie) {
+		if(chose && turn == 0) {
 			if(p1_win) {
 				p1_score++;
 			}
-			
 			if(p2_win) {
 				p2_score++;
 			}
 		}
 		
 		chose = false;
-		if(touch.px >= 35 && touch.px <= 284 && kDown & KEY_TOUCH) {
-			if(touch.py >= 50 && touch.py < 100) { // rock
-				choice = 0;
-				if(turn == 0) {
-					turn = 1;
-				} else {
-					turn = 0;
-				}
-				chose = true;
-			} else if(touch.py >= 100 && touch.py < 149) { // paper 
-				choice = 1;
-				if(turn == 0) {
-					turn = 1;
-				} else {
-					turn = 0;
-				}
-				chose = true;
-			} else if(touch.py >= 150 && touch.py <= 200) { // scissors
-				choice = 2;
-				if(turn == 0) {
-					turn = 1;
-				} else {
-					turn = 0;
-				}
-				chose = true;
+		choice = handleInput(kDown, touch);
+
+		if(choice != -1) {
+			chose = true;	
+			if(turn == 0) {
+				p1 = choice;
+			} else {
+				p2 = choice;
 			}
 		}
+
+		if(chose && turn == 1) {
+			_displayWinner = true;
+			int winner = getWinner(p1, p2);
+			tie = false;
+			p1_win = false;
+			p2_win = false;
+
+			if(winner == -1) tie = true;
+			else if(winner == 0) p1_win = true;
+			else p2_win = true;
+		}
+
+		if(chose) {
+			turn = invert(turn);
+		}
+		
 		
 		gfxFlushBuffers();
 		gfxSwapBuffers();
@@ -134,6 +110,48 @@ int main(int argc, char* argv[])
 	}
 	gfxExit();
 	return 0;
+}
+
+void displayTurn(int turn) {
+	if(turn == 0) {
+		printf("\x1b[30;20HP1 TURN");
+		return;
+	}
+
+	printf("\x1b[30;20HP2 TURN");
+}
+
+void displayScore(int p1_score, int p2_score) {
+	printf("\x1b[0;0H%d - %d", p1_score, p2_score);
+}
+
+void displayWinner(bool p1, bool p2) {
+	if(p1) {
+		printf("\x1b[4;0HP1 WIN");
+	} else {
+		printf("\x1b[4;0HP2 WIN");
+	}
+}
+
+int invert(int turn) {
+	if(turn == 0) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+int handleInput(u32 kDown, touchPosition touch) {
+	if(touch.px >= 35 && touch.px <= 284 && kDown & KEY_TOUCH) {
+		if(touch.py >= 50 && touch.py < 100) { // rock
+			return 0;
+		} else if(touch.py >= 100 && touch.py < 149) { // paper 
+			return 1;
+		} else if(touch.py >= 150 && touch.py <= 200) { // scissors
+			return 2;
+		}
+	}
+	return -1;
 }
 
 void drawPixel(gfxScreen_t screen, int x, int y, u8* buffer, u8 red, u8 green, u8 blue) {
